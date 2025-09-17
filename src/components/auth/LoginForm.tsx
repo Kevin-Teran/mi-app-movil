@@ -3,7 +3,7 @@
  * @route src/components/auth/LoginForm.tsx
  * @description Componente de formulario de inicio de sesión con diseño profesional.
  * @author kevin mariano
- * @version 2.0.0
+ * @version 1.0.0
  * @since 1.0.0
  * @copyright SENA 2025
  */
@@ -20,7 +20,6 @@ export function LoginForm(): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -49,16 +48,6 @@ export function LoginForm(): JSX.Element {
       setError('No se pudo conectar al servidor');
     } finally {
       setIsLoading(false);
-    }
-  };
-  
-  const handleDemoLogin = (userType: 'admin' | 'patient') => {
-    if (userType === 'admin') {
-      setEmail('admin@demo.com');
-      setPassword('admin123');
-    } else {
-      setEmail('patient@demo.com');
-      setPassword('patient123');
     }
   };
 
@@ -91,12 +80,6 @@ export function LoginForm(): JSX.Element {
           </button>
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-          <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"/>
-          Recordar sesión
-        </label>
-      </div>
 
       {error && (
         <div className="flex items-center p-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-700 dark:text-red-400" role="alert">
@@ -113,37 +96,6 @@ export function LoginForm(): JSX.Element {
       >
         {isLoading ? 'Ingresando...' : <><LogIn size={20} /> Iniciar Sesión</>}
       </button>
-      <div className="text-center">
-        <a href="#" className="text-sm text-green-600 hover:underline dark:text-green-500">¿Olvidaste tu contraseña?</a>
-      </div>
-      
-      <div className="relative flex py-2 items-center">
-          <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-          <span className="flex-shrink mx-4 text-gray-500 dark:text-gray-400">O ingresa con una cuenta demo:</span>
-          <div className="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
-      </div>
-
-      <div className="space-y-3">
-          <button onClick={() => handleDemoLogin('admin')} className="w-full flex items-center gap-3 p-3 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-              <UserIcon className="text-green-600" />
-              <div>
-                  <p className="font-semibold text-left text-gray-800 dark:text-white">admin@sena.edu.co</p>
-                  <p className="text-sm text-left text-gray-500 dark:text-gray-400">Administrador</p>
-              </div>
-          </button>
-          <button onClick={() => handleDemoLogin('patient')} className="w-full flex items-center gap-3 p-3 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
-              <UserIcon className="text-green-600" />
-              <div>
-                  <p className="font-semibold text-left text-gray-800 dark:text-white">usuario@sena.edu.co</p>
-                  <p className="text-sm text-left text-gray-500 dark:text-gray-400">Usuario</p>
-              </div>
-          </button>
-      </div>
-
-      <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-        © 2025 SENA - Todos los derechos reservados <br/>
-        Desarrollado por Kevin Mariano
-      </p>
     </div>
   );
 }
