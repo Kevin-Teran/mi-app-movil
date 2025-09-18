@@ -1,6 +1,6 @@
 // @file schema.prisma
 // @route prisma/schema.prisma
-// @description Define el esquema de la base de datos para Prisma.
+// @description Define el esquema completo de la base de datos para la aplicación de salud mental.
 // @author kevin mariano
 // @version 1.0.0
 // @since 1.0.0
@@ -21,13 +21,218 @@ model User {
   password  String
   name      String?
   age       Int?
+  phone     String?
+  address   String?
+  emergencyContact String?
+  emergencyPhone   String?
   role      UserRole
+  isActive  Boolean  @default(true)
+  profileCompleted Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  psychologistProfile PsychologistProfile?
+  patientsManaged     PatientPsychologist[] @relation("PsychologistPatients")
+  tasksCreated        Task[] @relation("TaskCreatedBy")
+
+  patientProfile      PatientProfile?
+  psychologists       PatientPsychologist[] @relation("PatientPsychologists")
+  taskAssignments     TaskAssignment[]
+  moodEntries         MoodEntry[]
+  photoTasks          PhotoTask[]
+  progressReports     ProgressReport[]
+  notifications       Notification[]
+
+  @@map("users")
+}
+
+model PsychologistProfile {
+  id             String @id @default(cuid())
+  userId         String @unique
+  specialization String
+  license        String
+  experience     Int?
+  bio            String? @db.Text
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("psychologist_profiles")
+}
+
+model PatientProfile {
+  id              String @id @default(cuid())
+  userId          String @unique
+  symptoms        Json?
+  diagnosis       String?
+  medicationNotes String? @db.Text
+  allergies       String?
+  emergencyNotes  String? @db.Text
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("patient_profiles")
+}
+
+model PatientPsychologist {
+  id             String   @id @default(cuid())
+  patientId      String
+  psychologistId String
+  assignedAt     DateTime @default(now())
+  isActive       Boolean  @default(true)
+  notes          String?  @db.Text
+
+  patient      User @relation("PatientPsychologists", fields: [patientId], references: [id])
+  psychologist User @relation("PsychologistPatients", fields: [psychologistId], references: [id])
+
+  @@unique([patientId, psychologistId])
+  @@map("patient_psychologists")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String     @db.Text
+  type        TaskType
+  category    String?
+  difficulty  Difficulty @default(MEDIUM)
+  estimatedTime Int?     
+  instructions Json?     
+  resources    Json?     
+  isTemplate   Boolean  @default(false)
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdBy   User             @relation("TaskCreatedBy", fields: [createdById], references: [id])
+  assignments TaskAssignment[]
+
+  @@map("tasks")
+}
+
+model TaskAssignment {
+  id          String           @id @default(cuid())
+  taskId      String
+  patientId   String
+  assignedAt  DateTime         @default(now())
+  dueDate     DateTime?
+  status      TaskStatus       @default(PENDING)
+  progress    Int              @default(0)
+  notes       String?          @db.Text
+  completedAt DateTime?
+  feedback    String?          @db.Text
+  rating      Int?            
+
+  task    Task @relation(fields: [taskId], references: [id])
+  patient User @relation(fields: [patientId], references: [id])
+
+  @@map("task_assignments")
+}
+
+model MoodEntry {
+  id        String   @id @default(cuid())
+  patientId String
+  mood      Int      
+  anxiety   Int?    
+  stress    Int?     
+  energy    Int?     
+  sleep     Int?    
+  notes     String?  @db.Text
+  date      DateTime @default(now())
+  
+  patient User @relation(fields: [patientId], references: [id])
+  
+  @@map("mood_entries")
+}
+
+model PhotoTask {
+  id          String    @id @default(cuid())
+  patientId   String
+  title       String
+  description String?   @db.Text
+  photoUrl    String?
+  location    String?
+  tags        Json?
+  mood        Int?      
+  reflection  String?   @db.Text
+  isCompleted Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  patient User @relation(fields: [patientId], references: [id])
+
+  @@map("photo_tasks")
+}
+
+model ProgressReport {
+  id           String   @id @default(cuid())
+  patientId    String
+  reportDate   DateTime @default(now())
+  overallMood  Float?   
+  tasksCompleted Int    @default(0)
+  tasksAssigned  Int    @default(0)
+  improvements Json?    
+  concerns     Json?    
+  goals        Json?    
+  notes        String?  @db.Text
+  generatedBy  String?  
+
+  patient User @relation(fields: [patientId], references: [id])
+
+  @@map("progress_reports")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String           @db.Text
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  actionUrl String?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
 }
 
 enum UserRole {
   admin
   psychologist
   patient
+}
+
+enum TaskType {
+  MEDITATION
+  EXERCISE
+  JOURNALING
+  PHOTO
+  BREATHING
+  MINDFULNESS
+  COGNITIVE
+  BEHAVIORAL
+  SOCIAL
+  CREATIVE
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum NotificationType {
+  TASK_REMINDER
+  APPOINTMENT
+  PROGRESS_UPDATE
+  SYSTEM
+  EMERGENCY
 }
